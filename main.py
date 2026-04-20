@@ -1,7 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api.proxies import WebshareProxyConfig
 
+ytt = YouTubeTranscriptApi(
+    proxy_config=WebshareProxyConfig(
+        proxy_username="fzytktuv",
+        proxy_password="obm06om4uar4",
+    )
+)
 app = FastAPI()
 
 app.add_middleware(
