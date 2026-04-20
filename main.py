@@ -5,8 +5,8 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.proxies import WebshareProxyConfig
 ytt = YouTubeTranscriptApi(
     proxy_config=WebshareProxyConfig(
-        proxy_username=os.environ.get("fzytktuv"),
-        proxy_password=os.environ.get("obm06om4uar4"),
+        proxy_username=os.environ.get("WEBSHARE_USERNAME"),
+        proxy_password=os.environ.get("WEBSHARE_PASSWORD"),
     )
 )
 app = FastAPI()
