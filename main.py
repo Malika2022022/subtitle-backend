@@ -1,14 +1,8 @@
 import os
+import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from youtube_transcript_api import YouTubeTranscriptApi
-from youtube_transcript_api.proxies import WebshareProxyConfig
-ytt = YouTubeTranscriptApi(
-    proxy_config=WebshareProxyConfig(
-        proxy_username=os.environ.get("WEBSHARE_USERNAME"),
-        proxy_password=os.environ.get("WEBSHARE_PASSWORD"),
-    )
-)
+
 app = FastAPI()
 
 app.add_middleware(
@@ -21,41 +15,22 @@ app.add_middleware(
 @app.get("/subtitles/{video_id}")
 async def get_subtitles(video_id: str, lang: str = "en"):
     try:
-        ytt = YouTubeTranscriptApi()
-        transcript_list = ytt.list(video_id)
-
-
-        transcript = None
-        for t in transcript_list:
-            if t.language_code == lang:
-                transcript = t
-                break
-
-
-        if transcript is None:
-            for t in transcript_list:
-                if t.language_code == "en":
-                    transcript = t
-                    break
-
-
-        if transcript is None:
-            transcript = next(iter(ytt.list(video_id)))
-
-        data = transcript.fetch()
-
+        response = requests.get(
+            "https://www.searchapi.io/api/v1/search",
+            params={
+                "engine": "youtube_transcripts",
+                "video_id": video_id,
+                "lang": lang,
+                "api_key": os.environ.get("SEARCHAPI_KEY"),
+            }
+        )
+        data = response.json()
+        if "transcripts" not in data:
+            raise HTTPException(status_code=404, detail="No transcripts found")
         return {
             "video_id": video_id,
-            "language": transcript.language_code,
-            "subtitles": [
-                {
-                    "text": snippet.text,
-                    "start": snippet.start,
-                    "duration": snippet.duration
-                }
-                for snippet in data
-            ]
+            "language": lang,
+            "subtitles": data["transcripts"]
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
